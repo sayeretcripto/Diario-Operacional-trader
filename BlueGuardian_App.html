@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BlueGuardian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080f1a;--dp:#0d1b2a;--mid:#112240;--card:#162b45;--inp:#0a1628;
+  --cy:#00c4ff;--cy2:rgba(0,196,255,.12);--cy3:rgba(0,196,255,.35);
+  --go:#ffd740;--te:#00e5a0;--gn:#00e676;--rd:#ff5252;
+  --wh:#ffffff;--dm:#4a6584;--lb:#7a9ab8;--bd:rgba(255,255,255,.08);--bd2:rgba(255,255,255,.14);
+  --mnq:#00c4ff;--mgc:#ffd740;--mbt:#00e5a0;
+  --nav:220px;--r:10px;--rs:7px;
+}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:#c8daf0;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 45% at 5% 0%,rgba(0,196,255,.05),transparent 55%),
+             radial-gradient(ellipse 50% 40% at 95% 100%,rgba(0,229,160,.05),transparent 55%)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,196,255,.008) 3px,rgba(0,196,255,.008) 4px)}
+#root{position:relative;z-index:1;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+nav{width:var(--nav);background:rgba(10,22,40,.97);border-right:1px solid var(--bd);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;
+  backdrop-filter:blur(20px);z-index:100;transition:transform .3s}
+.nav-logo{padding:1.25rem 1.1rem 1rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px}
+.nav-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--cy),#0055bb);
+  border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;
+  box-shadow:0 0 18px var(--cy3);flex-shrink:0}
+.nav-logo-text .t1{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;color:#fff;letter-spacing:-.02em;display:block}
+.nav-logo-text .t2{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--cy);letter-spacing:.15em;text-transform:uppercase}
+.nav-items{flex:1;padding:.5rem 0;overflow-y:auto}
+.nav-section{font-size:.55rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dm);padding:.75rem 1.1rem .35rem;font-family:'DM Mono',monospace}
+.nav-item{display:flex;align-items:center;gap:9px;padding:.62rem 1.1rem;cursor:pointer;
+  border-left:2px solid transparent;transition:all .18s;font-size:.82rem;color:var(--lb)}
+.nav-item:hover{background:rgba(255,255,255,.04);color:#fff}
+.nav-item.active{border-left-color:var(--item-color,var(--cy));background:rgba(255,255,255,.05);color:#fff}
+.nav-item .ico{font-size:1rem;width:20px;text-align:center}
+.nav-item .lbl{font-weight:500}
+.nav-item[data-page="mnq"]{--item-color:var(--mnq)}
+.nav-item[data-page="mgc"]{--item-color:var(--mgc)}
+.nav-item[data-page="mbt"]{--item-color:var(--mbt)}
+.nav-item[data-page="calc"]{--item-color:var(--go)}
+.nav-item[data-page="comp"]{--item-color:var(--te)}
+.nav-footer{padding:.75rem 1.1rem;border-top:1px solid var(--bd)}
+.lang-row{display:flex;flex-wrap:wrap;gap:3px}
+.lb-btn{font-family:'DM Mono',monospace;font-size:.6rem;font-weight:500;cursor:pointer;
+  border:1px solid var(--bd2);background:transparent;color:var(--lb);border-radius:20px;
+  padding:3px 7px;transition:all .16s}
+.lb-btn:hover{color:#fff;background:rgba(255,255,255,.06)}
+.lb-btn.active{background:var(--cy2);color:var(--cy);border-color:rgba(0,196,255,.3)}
+
+/* MAIN */
+.main-wrap{margin-left:var(--nav);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.top-bar{padding:.75rem 1.75rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;
+  justify-content:space-between;background:rgba(10,22,40,.92);backdrop-filter:blur(16px);
+  position:sticky;top:0;z-index:50;min-height:52px}
+.page-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#fff}
+.page-sub{font-size:.68rem;color:var(--lb);margin-top:1px}
+.main-content{padding:1.5rem 1.75rem 3rem;flex:1}
+
+/* CARDS / GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem}
+.kpi-card{background:linear-gradient(140deg,var(--card),var(--dp));border:1px solid var(--bd2);
+  border-radius:var(--r);padding:1rem;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--kc,var(--cy)) 0%,transparent 70%)}
+.kpi-label{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--lb);margin-bottom:.35rem}
+.kpi-val{font-family:'DM Mono',monospace;font-size:1.25rem;font-weight:500;color:#e8f4ff}
+.kpi-val.big{font-size:1.5rem;font-weight:700}
+.kpi-val.cy{color:var(--cy)}.kpi-val.go{color:var(--go)}.kpi-val.gn{color:var(--gn)}
+.kpi-val.rd{color:var(--rd)}.kpi-val.te{color:var(--te)}.kpi-val.lb{color:var(--lb)}
+.kpi-note{font-size:.6rem;color:var(--dm);margin-top:.25rem;font-family:'DM Mono',monospace}
+
+.sec-hdr{display:flex;align-items:center;gap:9px;margin:1.25rem 0 .85rem}
+.sec-hdr h2{font-family:'Syne',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--lb);white-space:nowrap}
+.sec-hdr::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--bd2),transparent)}
+html[dir=rtl] .sec-hdr::after{background:linear-gradient(270deg,var(--bd2),transparent)}
+
+.panel{background:linear-gradient(140deg,var(--card),rgba(13,27,42,.7));
+  border:1px solid var(--bd2);border-radius:var(--r);padding:1.25rem 1.5rem;margin-bottom:1rem;position:relative}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--pc,var(--cy)) 0%,transparent 65%)}
+html[dir=rtl] .panel::before{background:linear-gradient(270deg,var(--pc,var(--cy)) 0%,transparent 65%)}
+
+/* FIELDS */
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.85rem}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--lb)}
+.field input,.field select{background:var(--inp);border:1px solid var(--bd2);border-radius:var(--rs);
+  color:#e4f0ff;font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;
+  padding:8px 11px;outline:none;transition:border-color .18s,box-shadow .18s;
+  -webkit-appearance:none;width:100%}
+.field input:focus,.field select:focus{border-color:var(--cy);box-shadow:0 0 0 3px var(--cy2)}
+.field input.money{color:var(--gn)}
+.field input.negative{color:var(--rd)}
+.field select{cursor:pointer;padding-right:28px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a6584' fill='none' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+
+/* PROGRESS */
+.progress-bar{height:6px;background:rgba(255,255,255,.07);border-radius:99px;margin:.5rem 0;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pc,var(--cy)),var(--go));
+  transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* PILL */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:.6rem;font-weight:600;
+  letter-spacing:.04em;padding:3px 9px;border-radius:99px}
+.pill.ok{background:rgba(0,230,118,.1);color:var(--gn);border:1px solid rgba(0,230,118,.22)}
+.pill.warn{background:rgba(255,215,64,.1);color:var(--go);border:1px solid rgba(255,215,64,.22)}
+.pill.danger{background:rgba(255,82,82,.1);color:var(--rd);border:1px solid rgba(255,82,82,.22)}
+.pill.info{background:var(--cy2);color:var(--cy);border:1px solid rgba(0,196,255,.25)}
+
+/* INSTRUMENT CARDS (dashboard) */
+.inst-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+@media(max-width:900px){.inst-grid{grid-template-columns:1fr}}
+.inst-card{border:1px solid var(--bd);border-radius:var(--r);
+  background:linear-gradient(155deg,var(--card),var(--dp));overflow:hidden;position:relative}
+.inst-card::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 55% at 50% 0%,var(--ic-d),transparent 65%);pointer-events:none}
+.ic-head{padding:.9rem 1.1rem .75rem;border-bottom:1px solid var(--bd);position:relative}
+.ic-head::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--ic-c) 0%,transparent 70%)}
+html[dir=rtl] .ic-head::after{background:linear-gradient(270deg,var(--ic-c) 0%,transparent 70%)}
+.ic-name{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--ic-c);
+  text-shadow:0 0 20px var(--ic-g)}
+.ic-sub{font-size:.62rem;color:var(--lb);font-family:'DM Mono',monospace;margin-top:2px}
+.ic-body{padding:.9rem 1.1rem}
+.ic-kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
+.ic-kpi{background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:6px;padding:6px 8px}
+.ic-kpi .lbl{font-size:.55rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dm);margin-bottom:2px}
+.ic-kpi .val{font-family:'DM Mono',monospace;font-size:.85rem;font-weight:500;color:#deeeff}
+
+/* DAY TABLE */
+.day-table-wrap{overflow-x:auto;margin-top:.75rem}
+table.day-table{width:100%;border-collapse:collapse;font-size:.75rem}
+table.day-table th{background:var(--mid);color:var(--lb);font-size:.58rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;padding:7px 8px;text-align:center;
+  border-bottom:1px solid var(--bd2)}
+table.day-table td{padding:5px 6px;text-align:center;border-bottom:1px solid var(--bd);
+  font-family:'DM Mono',monospace;color:#c8daf0}
+table.day-table tr.weekend td{opacity:.35}
+table.day-table tr:hover:not(.weekend) td{background:rgba(255,255,255,.025)}
+table.day-table td.date-col{text-align:left;color:var(--lb);font-size:.68rem}
+table.day-table td.positive{color:var(--gn);font-weight:600}
+table.day-table td.negative{color:var(--rd);font-weight:600}
+table.day-table td input{background:var(--inp);border:1px solid var(--bd);border-radius:4px;
+  color:#e4f0ff;font-family:'DM Mono',monospace;font-size:.75rem;padding:3px 6px;
+  width:80px;outline:none;text-align:right}
+table.day-table td input:focus{border-color:var(--cy)}
+table.day-table td input.pos{color:var(--gn)}
+table.day-table td input.neg{color:var(--rd)}
+.day-num{font-size:.6rem;color:var(--dm);font-weight:700}
+.wkday-badge{font-size:.55rem;color:var(--dm);background:rgba(255,255,255,.05);
+  border-radius:3px;padding:1px 4px;font-family:'Barlow',sans-serif;font-weight:600;letter-spacing:.05em}
+
+/* CHART */
+.chart-wrap{background:rgba(8,15,26,.5);border:1px solid var(--bd);border-radius:var(--rs);
+  padding:.75rem .5rem .5rem;margin-top:.75rem;overflow:hidden}
+.chart-title{font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dm);margin-bottom:.5rem;padding:0 .25rem}
+svg.chart{width:100%;overflow:visible}
+
+/* CALCULATOR */
+.calc-block{border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:1rem}
+.calc-head{padding:.85rem 1.1rem;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bd);
+  position:relative}
+.calc-head::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--cc) 0%,transparent 70%)}
+html[dir=rtl] .calc-head::before{background:linear-gradient(270deg,var(--cc) 0%,transparent 70%)}
+.calc-head .ic-name{font-size:.9rem}
+.calc-body{padding:1rem 1.1rem;background:linear-gradient(155deg,var(--card),var(--dp))}
+.calc-in-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem;margin-bottom:.85rem}
+@media(max-width:700px){.calc-in-grid{grid-template-columns:1fr 1fr}}
+.dir-tog{display:grid;grid-template-columns:1fr 1fr;border-radius:var(--rs);overflow:hidden;border:1px solid var(--bd2)}
+.dir-btn{padding:7px 4px;text-align:center;font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;
+  cursor:pointer;border:none;background:transparent;color:var(--lb);transition:all .15s;letter-spacing:.04em}
+.dir-btn.long.active{background:rgba(0,230,118,.14);color:var(--gn)}
+.dir-btn.short.active{background:rgba(255,82,82,.14);color:var(--rd)}
+.dir-btn:hover:not(.active){background:rgba(255,255,255,.05)}
+.res-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.rb{background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:5px;padding:6px 8px}
+.rb .rl{font-size:.56rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dm);margin-bottom:2px}
+.rb .rv{font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:#deeeff}
+.rb .rv.big{font-size:1.15rem;font-weight:700}
+.rb .rv.cy{color:var(--cy)}.rb .rv.gn{color:var(--gn)}.rb .rv.rd{color:var(--rd)}.rb .rv.go{color:var(--go)}
+.rr-track{height:3px;background:rgba(255,255,255,.07);border-radius:99px;margin-top:4px;overflow:hidden}
+.rr-fill{height:100%;border-radius:99px;transition:width .4s;background:linear-gradient(90deg,var(--cc),var(--go))}
+.wp{display:none;font-size:.6rem;font-weight:600;margin-top:.5rem;padding:3px 9px;border-radius:99px;width:fit-content}
+.wp.show{display:inline-block}
+
+/* COMP TABLE */
+.comp-table-wrap{overflow-x:auto}
+table.comp{width:100%;border-collapse:collapse;font-size:.78rem}
+table.comp th{padding:8px 10px;background:var(--mid);color:var(--lb);font-size:.6rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--bd2);text-align:center}
+table.comp td{padding:8px 10px;border-bottom:1px solid var(--bd);font-family:'DM Mono',monospace;
+  text-align:center;color:#c8daf0}
+table.comp tr:hover td{background:rgba(255,255,255,.025)}
+
+/* BTN */
+.btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:var(--rs);
+  padding:8px 16px;font-family:'Barlow',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .18s}
+.btn-primary{background:var(--cy2);color:var(--cy);border:1px solid rgba(0,196,255,.3)}
+.btn-primary:hover{background:rgba(0,196,255,.2)}
+.btn-sm{padding:5px 11px;font-size:.72rem}
+.btn-danger{background:rgba(255,82,82,.1);color:var(--rd);border:1px solid rgba(255,82,82,.2)}
+.btn-danger:hover{background:rgba(255,82,82,.18)}
+
+/* MISC */
+.hidden{display:none!important}
+.flex{display:flex;align-items:center;gap:.75rem}
+.gap-sm{gap:.4rem}
+footer{text-align:center;padding:1.5rem;border-top:1px solid var(--bd);
+  font-size:.62rem;color:var(--dm);font-family:'DM Mono',monospace;letter-spacing:.07em}
+footer em{color:var(--cy);font-style:normal}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.09);border-radius:3px}
+::-webkit-scrollbar{height:5px}
+@media(max-width:768px){
+  nav{transform:translateX(-100%)}nav.open{transform:none}
+  .main-wrap{margin-left:0}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .calc-in-grid{grid-template-columns:1fr 1fr}
+  .res-grid{grid-template-columns:1fr 1fr}
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.page-anim{animation:fadeUp .35s ease both}
+</style>
+</head>
+<body>
+<div id="root">
+
+<!-- ══ SIDEBAR ══════════════════════════════════════════════════════════════ -->
+<nav id="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-icon">🛡</div>
+    <div class="nav-logo-text">
+      <span class="t1">BlueGuardian</span>
+      <span class="t2" data-i18n="nav.tagline">Trading Suite</span>
+    </div>
+  </div>
+  <div class="nav-items">
+    <div class="nav-section" data-i18n="nav.overview">Visão Geral</div>
+    <div class="nav-item active" data-page="dashboard" onclick="go('dashboard')">
+      <span class="ico">🏠</span><span class="lbl" data-i18n="nav.dashboard">Dashboard</span>
+    </div>
+    <div class="nav-section" data-i18n="nav.instruments">Instrumentos</div>
+    <div class="nav-item" data-page="mnq" onclick="go('mnq')" style="--item-color:var(--mnq)">
+      <span class="ico">📈</span><span class="lbl">MNQ / NQ</span>
+    </div>
+    <div class="nav-item" data-page="mgc" onclick="go('mgc')" style="--item-color:var(--mgc)">
+      <span class="ico">🥇</span><span class="lbl">MGC / GC</span>
+    </div>
+    <div class="nav-item" data-page="mbt" onclick="go('mbt')" style="--item-color:var(--mbt)">
+      <span class="ico">₿</span><span class="lbl">MBT / BT</span>
+    </div>
+    <div class="nav-section" data-i18n="nav.tools">Ferramentas</div>
+    <div class="nav-item" data-page="calc" onclick="go('calc')">
+      <span class="ico">📐</span><span class="lbl" data-i18n="nav.calc">Calculadora</span>
+    </div>
+    <div class="nav-item" data-page="comp" onclick="go('comp')">
+      <span class="ico">⚡</span><span class="lbl" data-i18n="nav.comp">Comparativo</span>
+    </div>
+  </div>
+  <div class="nav-footer">
+    <div class="nav-section" style="padding:0 0 .4rem" data-i18n="nav.lang">Idioma</div>
+    <div class="lang-row">
+      <button class="lb-btn" data-lang="PT" onclick="setLang('PT')">🇧🇷 PT</button>
+      <button class="lb-btn" data-lang="EN" onclick="setLang('EN')">🇺🇸 EN</button>
+      <button class="lb-btn" data-lang="ES" onclick="setLang('ES')">🇪🇸 ES</button>
+      <button class="lb-btn" data-lang="HE" onclick="setLang('HE')">🇮🇱 עב</button>
+      <button class="lb-btn" data-lang="RU" onclick="setLang('RU')">🇷🇺 RU</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══════════════════════════════════════════════════════════════════ -->
+<div class="main-wrap">
+  <div class="top-bar">
+    <div>
+      <div class="page-title" id="topTitle">Dashboard</div>
+      <div class="page-sub" id="topSub"></div>
+    </div>
+    <div class="flex gap-sm">
+      <button class="btn btn-primary btn-sm" id="resetBtn" onclick="confirmReset()" data-i18n="btn.reset" style="display:none">↺ Reset</button>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.05);color:var(--lb);border:1px solid var(--bd)" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+    </div>
+  </div>
+  <div class="main-content" id="content"></div>
+  <footer><em>BlueGuardian</em> &nbsp;·&nbsp; <span data-i18n="ft.note">Dados salvos no navegador · FLOOR em lotes inteiros · Preços em USD</span></footer>
+</div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════ i18n ═══════════════════════════════ */
+const WDAYS={PT:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],EN:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+  ES:['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],HE:['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'],
+  RU:['Вс','Пн','Вт','Ср','Чт','Пт','Сб']};
+const D={
+  PT:{
+    'nav.tagline':'Trading Suite','nav.overview':'Visão Geral','nav.dashboard':'Dashboard',
+    'nav.instruments':'Instrumentos','nav.tools':'Ferramentas','nav.calc':'Calculadora',
+    'nav.comp':'Comparativo','nav.lang':'Idioma',
+    'btn.reset':'↺ Reset','btn.save':'✓ Salvar',
+    'dash.title':'Dashboard Multi-Ativo','dash.sub':'Visão Consolidada · MNQ · MGC · MBT',
+    'sec.summary':'Resumo Consolidado','sec.config':'Configurações do Desafio',
+    'sec.daily':'Log Diário','sec.perf':'Performance','sec.goals':'Projeções de Meta',
+    'sec.calc':'Calculadora de Position Size','sec.comp':'Comparativo de Instrumentos',
+    'cfg.target':'Meta Total ($)','cfg.maxLoss':'Perda Máx. Total ($)',
+    'cfg.maxDay':'Perda Diária Máx. ($)','cfg.minDays':'Dias Mínimos','cfg.maxCont':'Máx Contratos',
+    'cfg.stop':'Stop Médio (pts)','cfg.startDate':'Data Início','cfg.type':'Tipo Contrato',
+    'lbl.metaTotal':'Meta Total','lbl.metaAcum':'Meta Acumulada','lbl.realAcum':'Real Acumulado',
+    'lbl.plMeta':'L/P vs Meta','lbl.capital':'Capital','lbl.diasUteis':'Dias Úteis',
+    'lbl.diasOper':'Dias Operados','lbl.diasPos':'Dias Positivos','lbl.pctPos':'% Dias +',
+    'lbl.meta5':'Meta 5D','lbl.meta10':'Meta 10D','lbl.meta20':'Meta 20D',
+    'tbl.day':'Dia','tbl.date':'Data','tbl.wday':'Sem','tbl.meta':'Meta/Dia',
+    'tbl.result':'Resultado ($)','tbl.cumMeta':'Meta Acum.','tbl.cumReal':'Real Acum.',
+    'tbl.plMeta':'L/P Meta','tbl.status':'Status',
+    'calc.capital':'Capital Total ($)','calc.riskVal':'Risco por Op.','calc.riskType':'Tipo Risco',
+    'calc.typePct':'% do Capital','calc.typeUSD':'Valor Fixo ($)','calc.riskUSD':'Risco em $',
+    'calc.entry':'Entrada (Preço)','calc.stop':'Stop Loss (Preço)','calc.target':'Alvo (Preço)',
+    'calc.dir':'Direção','calc.stopPts':'Stop (pts)','calc.tgtPts':'Alvo (pts)',
+    'calc.mini':'Mini','calc.full':'Full','calc.riskReal':'Risco Real','calc.gain':'Ganho Pot.',
+    'calc.rrMini':'R:R Mini','calc.rrFull':'R:R Full','calc.pct':'% Capital','calc.maxC':'Máx Cont.',
+    'st.ahead':'↑ Acima','st.ok':'✓ No alvo','st.behind':'⚠ Abaixo','st.danger':'✕ Stop global',
+    'st.nodata':'— Sem dados','st.wide':'— Stop largo',
+    'comp.inst':'Instrumento','comp.target':'Meta','comp.real':'Real','comp.pl':'L/P',
+    'comp.dias':'Dias Op.','comp.pct':'% Dias+','comp.meta5':'Meta 5D','comp.nodata':'Sem dados',
+    'ft.note':'Dados salvos no navegador · FLOOR em lotes inteiros · Preços em USD',
+    'lbl.long':'LONG','lbl.short':'SHORT',
+    'chart.capEvo':'Evolução · Real vs Meta','chart.daily':'Resultado Diário',
+  },
+  EN:{
+    'nav.tagline':'Trading Suite','nav.overview':'Overview','nav.dashboard':'Dashboard',
+    'nav.instruments':'Instruments','nav.tools':'Tools','nav.calc':'Calculator',
+    'nav.comp':'Comparative','nav.lang':'Language',
+    'btn.reset':'↺ Reset','btn.save':'✓ Save',
+    'dash.title':'Multi-Asset Dashboard','dash.sub':'Consolidated View · MNQ · MGC · MBT',
+    'sec.summary':'Consolidated Summary','sec.config':'Challenge Settings',
+    'sec.daily':'Daily Log','sec.perf':'Performance','sec.goals':'Goal Projections',
+    'sec.calc':'Position Size Calculator','sec.comp':'Instrument Comparative',
+    'cfg.target':'Total Target ($)','cfg.maxLoss':'Max Total Loss ($)',
+    'cfg.maxDay':'Max Daily Loss ($)','cfg.minDays':'Min Days','cfg.maxCont':'Max Contracts',
+    'cfg.stop':'Avg Stop (pts)','cfg.startDate':'Start Date','cfg.type':'Contract Type',
+    'lbl.metaTotal':'Total Target','lbl.metaAcum':'Cumulative Target','lbl.realAcum':'Actual Accum.',
+    'lbl.plMeta':'P/L vs Target','lbl.capital':'Capital','lbl.diasUteis':'Business Days',
+    'lbl.diasOper':'Traded Days','lbl.diasPos':'Positive Days','lbl.pctPos':'% Pos. Days',
+    'lbl.meta5':'5D Target','lbl.meta10':'10D Target','lbl.meta20':'20D Target',
+    'tbl.day':'Day','tbl.date':'Date','tbl.wday':'Wday','tbl.meta':'Target/Day',
+    'tbl.result':'Result ($)','tbl.cumMeta':'Cum. Target','tbl.cumReal':'Cum. Actual',
+    'tbl.plMeta':'P/L Target','tbl.status':'Status',
+    'calc.capital':'Total Capital ($)','calc.riskVal':'Risk per Trade','calc.riskType':'Risk Type',
+    'calc.typePct':'% of Capital','calc.typeUSD':'Fixed Amount ($)','calc.riskUSD':'Risk in $',
+    'calc.entry':'Entry (Price)','calc.stop':'Stop Loss (Price)','calc.target':'Target (Price)',
+    'calc.dir':'Direction','calc.stopPts':'Stop (pts)','calc.tgtPts':'Target (pts)',
+    'calc.mini':'Mini','calc.full':'Full','calc.riskReal':'Real Risk','calc.gain':'Pot. Gain',
+    'calc.rrMini':'R:R Mini','calc.rrFull':'R:R Full','calc.pct':'% Capital','calc.maxC':'Max Cont.',
+    'st.ahead':'↑ Ahead','st.ok':'✓ On track','st.behind':'⚠ Behind','st.danger':'✕ Global stop',
+    'st.nodata':'— No data','st.wide':'— Stop too wide',
+    'comp.inst':'Instrument','comp.target':'Target','comp.real':'Actual','comp.pl':'P/L',
+    'comp.dias':'Traded','comp.pct':'% Pos.','comp.meta5':'5D Target','comp.nodata':'No data',
+    'ft.note':'Data saved in browser · FLOOR on whole lots · Prices in USD',
+    'lbl.long':'LONG','lbl.short':'SHORT',
+    'chart.capEvo':'Evolution · Actual vs Target','chart.daily':'Daily Result',
+  },
+  ES:{
+    'nav.tagline':'Trading Suite','nav.overview':'Resumen','nav.dashboard':'Dashboard',
+    'nav.instruments':'Instrumentos','nav.tools':'Herramientas','nav.calc':'Calculadora',
+    'nav.comp':'Comparativo','nav.lang':'Idioma',
+    'btn.reset':'↺ Reset','btn.save':'✓ Guardar',
+    'dash.title':'Dashboard Multi-Activo','dash.sub':'Vista Consolidada · MNQ · MGC · MBT',
+    'sec.summary':'Resumen Consolidado','sec.config':'Configuración del Desafío',
+    'sec.daily':'Registro Diario','sec.perf':'Rendimiento','sec.goals':'Proyecciones de Meta',
+    'sec.calc':'Calculadora de Position Size','sec.comp':'Comparativo de Instrumentos',
+    'cfg.target':'Meta Total ($)','cfg.maxLoss':'Pérdida Máx. Total ($)',
+    'cfg.maxDay':'Pérdida Diaria Máx. ($)','cfg.minDays':'Días Mínimos','cfg.maxCont':'Máx Contratos',
+    'cfg.stop':'Stop Promedio (pts)','cfg.startDate':'Fecha Inicio','cfg.type':'Tipo Contrato',
+    'lbl.metaTotal':'Meta Total','lbl.metaAcum':'Meta Acumulada','lbl.realAcum':'Real Acumulado',
+    'lbl.plMeta':'G/P vs Meta','lbl.capital':'Capital','lbl.diasUteis':'Días Hábiles',
+    'lbl.diasOper':'Días Operados','lbl.diasPos':'Días Positivos','lbl.pctPos':'% Días +',
+    'lbl.meta5':'Meta 5D','lbl.meta10':'Meta 10D','lbl.meta20':'Meta 20D',
+    'tbl.day':'Día','tbl.date':'Fecha','tbl.wday':'Sem','tbl.meta':'Meta/Día',
+    'tbl.result':'Resultado ($)','tbl.cumMeta':'Meta Acum.','tbl.cumReal':'Real Acum.',
+    'tbl.plMeta':'G/P Meta','tbl.status':'Estado',
+    'calc.capital':'Capital Total ($)','calc.riskVal':'Riesgo por Op.','calc.riskType':'Tipo Riesgo',
+    'calc.typePct':'% del Capital','calc.typeUSD':'Monto Fijo ($)','calc.riskUSD':'Riesgo en $',
+    'calc.entry':'Entrada (Precio)','calc.stop':'Stop Loss (Precio)','calc.target':'Objetivo (Precio)',
+    'calc.dir':'Dirección','calc.stopPts':'Stop (pts)','calc.tgtPts':'Objetivo (pts)',
+    'calc.mini':'Mini','calc.full':'Full','calc.riskReal':'Riesgo Real','calc.gain':'Ganancia Pot.',
+    'calc.rrMini':'R:R Mini','calc.rrFull':'R:R Full','calc.pct':'% Capital','calc.maxC':'Máx Cont.',
+    'st.ahead':'↑ Por encima','st.ok':'✓ En el objetivo','st.behind':'⚠ Por debajo','st.danger':'✕ Stop global',
+    'st.nodata':'— Sin datos','st.wide':'— Stop amplio',
+    'comp.inst':'Instrumento','comp.target':'Meta','comp.real':'Real','comp.pl':'G/P',
+    'comp.dias':'Días Op.','comp.pct':'% Días+','comp.meta5':'Meta 5D','comp.nodata':'Sin datos',
+    'ft.note':'Datos guardados en el navegador · FLOOR en lotes enteros · Precios en USD',
+    'lbl.long':'LARGO','lbl.short':'CORTO',
+    'chart.capEvo':'Evolución · Real vs Meta','chart.daily':'Resultado Diario',
+  },
+  HE:{
+    'nav.tagline':'מערכת מסחר','nav.overview':'סקירה','nav.dashboard':'דאשבורד',
+    'nav.instruments':'מכשירים','nav.tools':'כלים','nav.calc':'מחשבון',
+    'nav.comp':'השוואה','nav.lang':'שפה',
+    'btn.reset':'↺ אפס','btn.save':'✓ שמור',
+    'dash.title':'דאשבורד רב-נכסי','dash.sub':'תצוגה מאוחדת · MNQ · MGC · MBT',
+    'sec.summary':'סיכום מאוחד','sec.config':'הגדרות האתגר',
+    'sec.daily':'יומן יומי','sec.perf':'ביצועים','sec.goals':'תחזיות יעד',
+    'sec.calc':'מחשבון גודל פוזיציה','sec.comp':'השוואת מכשירים',
+    'cfg.target':'יעד כולל ($)','cfg.maxLoss':'הפסד מקס. כולל ($)',
+    'cfg.maxDay':'הפסד יומי מקס. ($)','cfg.minDays':'ימי מסחר מינ.','cfg.maxCont':'חוזים מקס.',
+    'cfg.stop':'סטופ ממוצע (נקודות)','cfg.startDate':'תאריך התחלה','cfg.type':'סוג חוזה',
+    'lbl.metaTotal':'יעד כולל','lbl.metaAcum':'יעד מצטבר','lbl.realAcum':'ממשי מצטבר',
+    'lbl.plMeta':'רווח/הפסד vs יעד','lbl.capital':'הון','lbl.diasUteis':'ימי עסקים',
+    'lbl.diasOper':'ימים נסחרים','lbl.diasPos':'ימים חיוביים','lbl.pctPos':'% ימים חיוביים',
+    'lbl.meta5':'יעד 5 ימים','lbl.meta10':'יעד 10 ימים','lbl.meta20':'יעד 20 ימים',
+    'tbl.day':'יום','tbl.date':'תאריך','tbl.wday':'יום שבוע','tbl.meta':'יעד/יום',
+    'tbl.result':'תוצאה ($)','tbl.cumMeta':'יעד מצטבר','tbl.cumReal':'ממשי מצטבר',
+    'tbl.plMeta':'רווח/הפסד יעד','tbl.status':'סטטוס',
+    'calc.capital':'הון כולל ($)','calc.riskVal':'סיכון לעסקה','calc.riskType':'סוג סיכון',
+    'calc.typePct':'% מההון','calc.typeUSD':'סכום קבוע ($)','calc.riskUSD':'סיכון בדולר',
+    'calc.entry':'כניסה (מחיר)','calc.stop':'סטופ לוס (מחיר)','calc.target':'מטרה (מחיר)',
+    'calc.dir':'כיוון','calc.stopPts':'סטופ (נקודות)','calc.tgtPts':'מטרה (נקודות)',
+    'calc.mini':'מיני','calc.full':'רגיל','calc.riskReal':'סיכון ממשי','calc.gain':'רווח פוט.',
+    'calc.rrMini':'R:R מיני','calc.rrFull':'R:R רגיל','calc.pct':'% הון','calc.maxC':'מקס. חוזים',
+    'st.ahead':'↑ מעל היעד','st.ok':'✓ בסדר','st.behind':'⚠ מתחת','st.danger':'✕ סטופ כולל',
+    'st.nodata':'— אין נתונים','st.wide':'— סטופ רחב',
+    'comp.inst':'מכשיר','comp.target':'יעד','comp.real':'ממשי','comp.pl':'רווח/הפסד',
+    'comp.dias':'ימים','comp.pct':'% חיובי','comp.meta5':'יעד 5D','comp.nodata':'אין נתונים',
+    'ft.note':'נתונים שמורים בדפדפן · FLOOR על לוטים שלמים · מחירים בדולר',
+    'lbl.long':'לונג','lbl.short':'שורט',
+    'chart.capEvo':'התפתחות · ממשי vs יעד','chart.daily':'תוצאה יומית',
+  },
+  RU:{
+    'nav.tagline':'Торговая Система','nav.overview':'Обзор','nav.dashboard':'Дэшборд',
+    'nav.instruments':'Инструменты','nav.tools':'Инструменты','nav.calc':'Калькулятор',
+    'nav.comp':'Сравнение','nav.lang':'Язык',
+    'btn.reset':'↺ Сброс','btn.save':'✓ Сохранить',
+    'dash.title':'Мульти-Актив Дэшборд','dash.sub':'Сводный вид · MNQ · MGC · MBT',
+    'sec.summary':'Сводный Отчёт','sec.config':'Настройки Вызова',
+    'sec.daily':'Ежедневный Журнал','sec.perf':'Производительность','sec.goals':'Проекции Цели',
+    'sec.calc':'Калькулятор Размера Позиции','sec.comp':'Сравнение Инструментов',
+    'cfg.target':'Общая Цель ($)','cfg.maxLoss':'Макс. Общий Убыток ($)',
+    'cfg.maxDay':'Макс. Дневной Убыток ($)','cfg.minDays':'Мин. Дней','cfg.maxCont':'Макс. Контрактов',
+    'cfg.stop':'Средний Стоп (пт)','cfg.startDate':'Дата Начала','cfg.type':'Тип Контракта',
+    'lbl.metaTotal':'Общая Цель','lbl.metaAcum':'Накопл. Цель','lbl.realAcum':'Факт. Накоплено',
+    'lbl.plMeta':'П/У к Цели','lbl.capital':'Капитал','lbl.diasUteis':'Рабочих Дней',
+    'lbl.diasOper':'Торговых Дней','lbl.diasPos':'Позит. Дней','lbl.pctPos':'% Позит.',
+    'lbl.meta5':'Цель 5Д','lbl.meta10':'Цель 10Д','lbl.meta20':'Цель 20Д',
+    'tbl.day':'День','tbl.date':'Дата','tbl.wday':'Д/Н','tbl.meta':'Цель/День',
+    'tbl.result':'Результат ($)','tbl.cumMeta':'Накопл. Цель','tbl.cumReal':'Факт. Накопл.',
+    'tbl.plMeta':'П/У Цель','tbl.status':'Статус',
+    'calc.capital':'Общий Капитал ($)','calc.riskVal':'Риск на Сделку','calc.riskType':'Тип Риска',
+    'calc.typePct':'% от Капитала','calc.typeUSD':'Фикс. Сумма ($)','calc.riskUSD':'Риск в $',
+    'calc.entry':'Вход (Цена)','calc.stop':'Стоп-лосс (Цена)','calc.target':'Цель (Цена)',
+    'calc.dir':'Направление','calc.stopPts':'Стоп (пт)','calc.tgtPts':'Цель (пт)',
+    'calc.mini':'Мини','calc.full':'Полный','calc.riskReal':'Реал. Риск','calc.gain':'Пот. Прибыль',
+    'calc.rrMini':'R:R Мини','calc.rrFull':'R:R Полный','calc.pct':'% Капитала','calc.maxC':'Макс. Конт.',
+    'st.ahead':'↑ Выше цели','st.ok':'✓ По плану','st.behind':'⚠ Ниже цели','st.danger':'✕ Глоб. стоп',
+    'st.nodata':'— Нет данных','st.wide':'— Стоп широк',
+    'comp.inst':'Инструмент','comp.target':'Цель','comp.real':'Факт','comp.pl':'П/У',
+    'comp.dias':'Торг. Дней','comp.pct':'% Позит.','comp.meta5':'Цель 5Д','comp.nodata':'Нет данных',
+    'ft.note':'Данные сохранены в браузере · FLOOR до целых лотов · Цены в USD',
+    'lbl.long':'ЛОНГ','lbl.short':'ШОРТ',
+    'chart.capEvo':'Динамика · Факт vs Цель','chart.daily':'Дневной Результат',
+  }
+};
+let lang='PT';
+function t(k){return(D[lang]&&D[lang][k])||D.EN[k]||k}
+function setLang(l){
+  lang=l;try{localStorage.setItem('bg_lang',l)}catch(e){}
+  const h=document.documentElement;
+  h.setAttribute('lang',l==='HE'?'he':l.toLowerCase());
+  h.setAttribute('dir',l==='HE'?'rtl':'ltr');
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.getAttribute('data-i18n')));
+  document.querySelectorAll('.lb-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
+  renderPage(currentPage);
+}
+
+/* ═══════════════════════════════════ INSTRUMENTS CONFIG ═══════════════════ */
+const INST_META={
+  mnq:{symbol:'MNQ',full:'NQ',name:'Micro Nasdaq-100',ptMini:2,ptFull:20,
+    color:'var(--mnq)',glow:'rgba(0,196,255,.25)',dim:'rgba(0,196,255,.08)',emoji:'📈',
+    defCfg:{target:3000,maxLoss:-2000,maxDay:-600,minDays:10,maxCont:3,stop:20,type:'mini',startDate:''}},
+  mgc:{symbol:'MGC',full:'GC',name:'Micro Gold',ptMini:10,ptFull:100,
+    color:'var(--mgc)',glow:'rgba(255,199,64,.25)',dim:'rgba(255,199,64,.08)',emoji:'🥇',
+    defCfg:{target:2000,maxLoss:-1500,maxDay:-500,minDays:10,maxCont:3,stop:5,type:'mini',startDate:''}},
+  mbt:{symbol:'MBT',full:'BT',name:'Micro Bitcoin',ptMini:2.5,ptFull:25,
+    color:'var(--mbt)',glow:'rgba(0,229,160,.25)',dim:'rgba(0,229,160,.08)',emoji:'₿',
+    defCfg:{target:4000,maxLoss:-2500,maxDay:-700,minDays:10,maxCont:3,stop:200,type:'mini',startDate:''}}
+};
+
+/* ═══════════════════════════════════ STORAGE ════════════════════════════════ */
+const KEY='blueguardian_v2';
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
+function save(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
+function getState(){
+  let s=load();
+  if(!s.instruments){s.instruments={}}
+  for(const id of['mnq','mgc','mbt']){
+    if(!s.instruments[id]){s.instruments[id]={config:{...INST_META[id].defCfg},days:mkDays(INST_META[id].defCfg.startDate)}}
+    if(!s.instruments[id].config) s.instruments[id].config={...INST_META[id].defCfg}
+    if(!s.instruments[id].days || s.instruments[id].days.length<30) s.instruments[id].days=mkDays(s.instruments[id].config.startDate||'')
+  }
+  if(!s.calc) s.calc={capital:50000,riskVal:1,riskType:'pct',
+    mnq:{entry:'',stop:'',target:'',dir:'LONG'},mgc:{entry:'',stop:'',target:'',dir:'LONG'},mbt:{entry:'',stop:'',target:'',dir:'LONG'}}
+  return s;
+}
+function setState(d){save(d)}
+
+/* ═══════════════════════════════════ DAYS BUILDER ═══════════════════════════ */
+function mkDays(startDateStr){
+  const start=startDateStr?new Date(startDateStr+'T12:00:00'):new Date();
+  const days=[];
+  for(let i=0;i<30;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    days.push({date:fmtDate(d),resultado:0});
+  }
+  return days;
+}
+function fmtDate(d){return d.toISOString().split('T')[0]}
+function parseDateObj(str){return str?new Date(str+'T12:00:00'):new Date()}
+function isWeekend(dateStr){const d=parseDateObj(dateStr);return d.getDay()===0||d.getDay()===6}
+function getDayName(dateStr){const d=parseDateObj(dateStr);return WDAYS[lang][d.getDay()]}
+function isBusinessDay(dateStr){return !isWeekend(dateStr)}
+
+/* ═══════════════════════════════════ CALCULATIONS ═══════════════════════════ */
+function calcInst(instData){
+  const {config,days}=instData;
+  const target=parseFloat(config.target)||0;
+  const maxLoss=parseFloat(config.maxLoss)||0;
+  const minDays=parseInt(config.minDays)||10;
+
+  const bDays=days.filter(d=>isBusinessDay(d.date));
+  const diasUteis=bDays.length;
+  const traded=days.filter(d=>isBusinessDay(d.date)&&d.resultado!==0);
+  const diasOper=traded.length;
+  const diasPos=traded.filter(d=>d.resultado>0).length;
+  const pctPos=diasOper?diasPos/diasOper:0;
+
+  // Rolling target: each traded day contributes its daily target
+  let remaining=target;
+  let metaAcum=0,realAcum=0;
+  const timeline=[];
+  let cumMeta=0,cumReal=0;
+
+  for(let i=0;i<days.length;i++){
+    const day=days[i];
+    const isBiz=isBusinessDay(day.date);
+    const bizDaysLeft=days.slice(i).filter(d=>isBusinessDay(d.date)).length;
+    const metaPerDia=bizDaysLeft>0?(remaining/bizDaysLeft):0;
+    const hasResult=day.resultado!==0;
+    if(isBiz&&hasResult){
+      metaAcum+=metaPerDia;
+      realAcum+=parseFloat(day.resultado)||0;
+      remaining-=parseFloat(day.resultado)||0;
+      cumMeta+=metaPerDia;
+      cumReal+=parseFloat(day.resultado)||0;
+    }
+    timeline.push({date:day.date,resultado:parseFloat(day.resultado)||0,
+      metaPerDia:isBiz?metaPerDia:0,cumMeta,cumReal,isBiz,hasResult});
+  }
+
+  const pctAchieved=target?Math.max(0,Math.min(1,realAcum/target)):0;
+  const plMeta=realAcum-metaAcum;
+  const currentLoss=realAcum<0?realAcum:0;
+  const meta5=target/5,meta10=target/10,meta20=target/20;
+
+  let status='nodata';
+  if(diasOper>0){
+    if(realAcum<=maxLoss) status='danger';
+    else if(plMeta>=0) status='ahead';
+    else if(Math.abs(plMeta)<metaAcum*0.15) status='ok';
+    else status='behind';
+  }
+  return{target,metaAcum,realAcum,plMeta,diasUteis,diasOper,diasPos,pctPos,
+    pctAchieved,currentLoss,meta5,meta10,meta20,status,timeline,minDays,
+    isComplete:diasOper>=minDays&&realAcum>=target};
+}
+
+/* ═══════════════════════════════════ FORMATTERS ═════════════════════════════ */
+const $f=(v,d=2)=>{if(!isFinite(v))return'—';const s=Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});return(v<0?'-':'')+'$\u202f'+s};
+const pf=(v,d=2)=>isFinite(v)?v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+const pct=(v)=>isFinite(v)?(v*100).toFixed(1)+'%':'—';
+const rrf=(v)=>(!isFinite(v)||v<=0)?'—':v.toFixed(2)+'R';
+
+/* ═══════════════════════════════════ SVG CHARTS ═════════════════════════════ */
+function barChart(data,width,height){
+  if(!data.length)return'';
+  const max=Math.max(...data.map(d=>Math.abs(d.v)),1);
+  const midY=height/2;const bw=Math.max(2,width/data.length-2);
+  let bars='';
+  data.forEach((d,i)=>{
+    const x=i*(width/data.length)+(width/data.length-bw)/2;
+    const h=Math.max(2,Math.abs(d.v)/max*midY*.9);
+    const y=d.v>=0?midY-h:midY;
+    const col=d.v>0?'#00e676':d.v<0?'#ff5252':'#4a6584';
+    bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${col}" rx="1" opacity=".85"/>`;
+  });
+  return`<svg class="chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+    <line x1="0" y1="${midY}" x2="${width}" y2="${midY}" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+    ${bars}</svg>`;
+}
+function lineChart(data,width,height){
+  if(data.length<2)return'';
+  const vals=data.map(d=>d.v);
+  const rVals=data.map(d=>d.r);
+  const allVals=[...vals,...rVals];
+  const mn=Math.min(...allVals),mx=Math.max(...allVals,0.01);
+  const range=mx-mn||1;
+  const py=v=>((mx-v)/range*(height-10)+5).toFixed(1);
+  const px=i=>((i/(data.length-1))*width).toFixed(1);
+  const mkPath=arr=>{
+    let d=arr.map((v,i)=>`${i===0?'M':'L'}${px(i)},${py(v)}`).join(' ');
+    return d;
+  };
+  return`<svg class="chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+    <defs><linearGradient id="gMeta" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffd740" stop-opacity=".3"/><stop offset="100%" stop-color="#ffd740" stop-opacity="0"/></linearGradient>
+    <linearGradient id="gReal" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--cy)" stop-opacity=".3"/><stop offset="100%" stop-color="var(--cy)" stop-opacity="0"/></linearGradient></defs>
+    <path d="${mkPath(vals)} L${px(data.length-1)},${height} L0,${height} Z" fill="url(#gReal)" opacity=".5"/>
+    <path d="${mkPath(vals)}" fill="none" stroke="var(--cy)" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="${mkPath(rVals)}" fill="none" stroke="#ffd740" stroke-width="1.5" stroke-dasharray="4 3" stroke-linejoin="round" opacity=".7"/>
+    </svg>`;
+}
+
+/* ═══════════════════════════════════ PAGE: DASHBOARD ════════════════════════ */
+function pageDashboard(){
+  const s=getState();
+  let instCards='';
+  for(const id of['mnq','mgc','mbt']){
+    const m=INST_META[id],inst=s.instruments[id],calc=calcInst(inst);
+    const stCls=calc.status==='ahead'?'ok':calc.status==='ok'?'ok':calc.status==='danger'?'danger':'warn';
+    const stTxt=t(`st.${calc.status}`);
+    const barPct=Math.min(100,Math.max(0,calc.pctAchieved*100)).toFixed(1);
+    instCards+=`<div class="inst-card" style="--ic-c:${m.color};--ic-g:${m.glow};--ic-d:${m.dim}">
+      <div class="ic-head">
+        <div class="ic-name">${m.emoji} ${m.symbol} / ${m.full}</div>
+        <div class="ic-sub">${m.name} &nbsp;·&nbsp; Mini $${m.ptMini}/pt &nbsp;·&nbsp; Full $${m.ptFull}/pt</div>
+      </div>
+      <div class="ic-body">
+        <div class="ic-kpi-row">
+          <div class="ic-kpi"><div class="lbl" data-i18n="lbl.realAcum">${t('lbl.realAcum')}</div>
+            <div class="val" style="color:${calc.realAcum>=0?'var(--gn)':'var(--rd)'}">${$f(calc.realAcum)}</div></div>
+          <div class="ic-kpi"><div class="lbl" data-i18n="lbl.plMeta">${t('lbl.plMeta')}</div>
+            <div class="val" style="color:${calc.plMeta>=0?'var(--gn)':'var(--rd)'}">${$f(calc.plMeta)}</div></div>
+        </div>
+        <div class="ic-kpi-row">
+          <div class="ic-kpi"><div class="lbl" data-i18n="lbl.diasOper">${t('lbl.diasOper')}</div>
+            <div class="val">${calc.diasOper} / ${calc.diasUteis}</div></div>
+          <div class="ic-kpi"><div class="lbl" data-i18n="lbl.pctPos">${t('lbl.pctPos')}</div>
+            <div class="val" style="color:${calc.pctPos>=0.5?'var(--gn)':'var(--rd)'}">${pct(calc.pctPos)}</div></div>
+        </div>
+        <div style="margin-top:.6rem">
+          <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--dm);margin-bottom:4px">
+            <span>${$f(calc.realAcum)} / ${$f(calc.target)}</span><span>${barPct}%</span></div>
+          <div class="progress-bar" style="--pc:${m.color}"><div class="progress-fill" style="width:${barPct}%"></div></div>
+        </div>
+        <div style="margin-top:.6rem"><span class="pill ${stCls}">${stTxt}</span></div>
+      </div>
+    </div>`;
+  }
+
+  // Summary KPIs
+  const all=['mnq','mgc','mbt'].map(id=>calcInst(s.instruments[id]));
+  const totalReal=all.reduce((a,c)=>a+c.realAcum,0);
+  const totalMeta=all.reduce((a,c)=>a+c.metaAcum,0);
+  const totalTarget=all.reduce((a,c)=>a+c.target,0);
+  const totalDias=Math.max(...all.map(c=>c.diasOper));
+
+  return`<div class="page-anim">
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--kc:var(--cy)">
+        <div class="kpi-label" data-i18n="lbl.realAcum">${t('lbl.realAcum')}</div>
+        <div class="kpi-val big ${totalReal>=0?'gn':'rd'}">${$f(totalReal)}</div>
+        <div class="kpi-note">${t('lbl.metaAcum')}: ${$f(totalMeta)}</div>
+      </div>
+      <div class="kpi-card" style="--kc:var(--go)">
+        <div class="kpi-label" data-i18n="lbl.plMeta">${t('lbl.plMeta')}</div>
+        <div class="kpi-val big ${(totalReal-totalMeta)>=0?'gn':'rd'}">${$f(totalReal-totalMeta)}</div>
+        <div class="kpi-note">${t('lbl.metaTotal')}: ${$f(totalTarget)}</div>
+      </div>
+      <div class="kpi-card" style="--kc:var(--te)">
+        <div class="kpi-label" data-i18n="lbl.diasOper">${t('lbl.diasOper')}</div>
+        <div class="kpi-val big cy">${totalDias}</div>
+        <div class="kpi-note">${t('lbl.diasPos')}: ${all.reduce((a,c)=>a+c.diasPos,0)}</div>
+      </div>
+      <div class="kpi-card" style="--kc:var(--cy)">
+        <div class="kpi-label" data-i18n="lbl.pctPos">${t('lbl.pctPos')}</div>
+        <div class="kpi-val big ${all[0].pctPos>=0.5?'gn':'rd'}">${pct(all.reduce((a,c)=>a+c.pctPos,0)/3)}</div>
+        <div class="kpi-note">MNQ · MGC · MBT</div>
+      </div>
+    </div>
+    <div class="sec-hdr"><h2 data-i18n="sec.summary">${t('sec.summary')}</h2></div>
+    <div class="inst-grid">${instCards}</div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════ PAGE: INSTRUMENT ═══════════════════════ */
+function pageInst(id){
+  const m=INST_META[id];const s=getState();
+  const inst=s.instruments[id];const cfg=inst.config;const calc=calcInst(inst);
+  const barPct=Math.min(100,Math.max(0,calc.pctAchieved*100)).toFixed(1);
+  const stCls=calc.status==='ahead'?'ok':calc.status==='danger'?'danger':'warn';
+
+  // Config panel
+  const cfgHtml=`<div class="panel" style="--pc:${m.color}">
+    <div style="font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--lb);margin-bottom:.85rem" data-i18n="sec.config">${t('sec.config')}</div>
+    <div class="field-grid">
+      ${mkField('cfg.target',`inst_${id}_target`,cfg.target,'number','',0)}
+      ${mkField('cfg.maxLoss',`inst_${id}_maxLoss`,cfg.maxLoss,'number','',0)}
+      ${mkField('cfg.maxDay',`inst_${id}_maxDay`,cfg.maxDay,'number','',0)}
+      ${mkField('cfg.minDays',`inst_${id}_minDays`,cfg.minDays,'number','',0)}
+      ${mkField('cfg.maxCont',`inst_${id}_maxCont`,cfg.maxCont,'number','',0)}
+      ${mkField('cfg.stop',`inst_${id}_stop`,cfg.stop,'number','',2)}
+      ${mkField('cfg.startDate',`inst_${id}_startDate`,cfg.startDate,'date','',0)}
+    </div>
+    <div style="margin-top:.85rem;display:flex;gap:.5rem">
+      <button class="btn btn-primary btn-sm" onclick="saveInstConfig('${id}')" data-i18n="btn.save">${t('btn.save')}</button>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.05);color:var(--lb);border:1px solid var(--bd);font-size:.72rem" onclick="rebuildDays('${id}')">↺ ${t('cfg.startDate')}</button>
+    </div>
+  </div>`;
+
+  // KPI cards
+  const kpiHtml=`<div class="kpi-grid">
+    <div class="kpi-card" style="--kc:${m.color}">
+      <div class="kpi-label" data-i18n="lbl.realAcum">${t('lbl.realAcum')}</div>
+      <div class="kpi-val big ${calc.realAcum>=0?'gn':'rd'}">${$f(calc.realAcum)}</div>
+      <div class="kpi-note">${t('lbl.metaTotal')}: ${$f(calc.target)}</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--go)">
+      <div class="kpi-label" data-i18n="lbl.metaAcum">${t('lbl.metaAcum')}</div>
+      <div class="kpi-val go">${$f(calc.metaAcum)}</div>
+      <div class="kpi-note">${t('lbl.plMeta')}: <span style="color:${calc.plMeta>=0?'var(--gn)':'var(--rd)'}">${$f(calc.plMeta)}</span></div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--te)">
+      <div class="kpi-label" data-i18n="lbl.diasOper">${t('lbl.diasOper')}</div>
+      <div class="kpi-val te">${calc.diasOper} / ${calc.diasUteis}</div>
+      <div class="kpi-note">${t('lbl.diasPos')}: ${calc.diasPos} &nbsp;(${pct(calc.pctPos)})</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--cy)">
+      <div class="kpi-label">${t('sec.goals')}</div>
+      <div class="kpi-val cy" style="font-size:1rem">${$f(calc.meta5)}<span style="font-size:.6rem;color:var(--dm)"> /5D</span></div>
+      <div class="kpi-note">${$f(calc.meta10)} /10D &nbsp;·&nbsp; ${$f(calc.meta20)} /20D</div>
+    </div>
+  </div>
+  <div style="margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--dm);margin-bottom:5px">
+      <span>${$f(calc.realAcum)} / ${$f(calc.target)}</span>
+      <span class="pill ${stCls}" style="margin:0">${t('st.'+calc.status)}</span>
+      <span>${barPct}%</span>
+    </div>
+    <div class="progress-bar" style="--pc:${m.color};height:8px"><div class="progress-fill" style="width:${barPct}%"></div></div>
+  </div>`;
+
+  // Daily table
+  let rows='',cumMeta=0,cumReal=0,bizLeft=calc.diasUteis;
+  const tl=calc.timeline;
+  tl.forEach((day,i)=>{
+    const wknd=!day.isBiz;
+    const rVal=day.resultado;
+    const rCls=rVal>0?'positive':rVal<0?'negative':'';
+    const metaD=day.metaPerDia;
+    cumMeta+=(day.isBiz&&day.hasResult)?metaD:0;
+    cumReal+=rVal;
+    const plD=day.hasResult?rVal-metaD:0;
+    const plCls=plD>0?'positive':plD<0?'negative':'';
+    rows+=`<tr class="${wknd?'weekend':''}">
+      <td><span class="day-num">${i+1}</span></td>
+      <td class="date-col">${day.date.slice(5)} <span class="wkday-badge">${getDayName(day.date)}</span></td>
+      <td>${wknd?'—':$f(metaD)}</td>
+      <td>${wknd?'<span style="color:var(--dm)">—</span>':`<input type="number" step="0.01" value="${rVal||''}" class="${rVal>0?'pos':rVal<0?'neg':''}" onchange="updateDay('${id}',${i},this.value)" onfocus="this.select()" placeholder="0.00">`}</td>
+      <td class="${rVal>0?'positive':rVal<0?'negative':''}">${day.hasResult?$f(cumReal):'—'}</td>
+      <td>${day.hasResult?$f(cumMeta):'—'}</td>
+      <td class="${plCls}">${day.hasResult?$f(plD):'—'}</td>
+    </tr>`;
+  });
+
+  const tableHtml=`<div class="day-table-wrap">
+    <table class="day-table">
+      <thead><tr>
+        <th data-i18n="tbl.day">${t('tbl.day')}</th>
+        <th data-i18n="tbl.date">${t('tbl.date')}</th>
+        <th data-i18n="tbl.meta">${t('tbl.meta')}</th>
+        <th data-i18n="tbl.result">${t('tbl.result')}</th>
+        <th data-i18n="tbl.cumReal">${t('tbl.cumReal')}</th>
+        <th data-i18n="tbl.cumMeta">${t('tbl.cumMeta')}</th>
+        <th data-i18n="tbl.plMeta">${t('tbl.plMeta')}</th>
+      </tr></thead><tbody>${rows}</tbody>
+    </table></div>`;
+
+  // Charts
+  const barData=tl.filter(d=>d.isBiz).map(d=>({v:d.resultado}));
+  const lineData=tl.filter(d=>d.hasResult).map(d=>({v:d.cumReal,r:d.cumMeta}));
+  const chartsHtml=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:.75rem">
+    <div class="chart-wrap"><div class="chart-title" data-i18n="chart.daily">${t('chart.daily')}</div>${barChart(barData,400,80)}</div>
+    <div class="chart-wrap"><div class="chart-title" data-i18n="chart.capEvo">${t('chart.capEvo')}</div>${lineData.length>1?lineChart(lineData,400,80):'<div style="color:var(--dm);font-size:.7rem;padding:.5rem">—</div>'}</div>
+  </div>`;
+
+  return`<div class="page-anim">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.1rem">
+      <div style="font-family:\'DM Mono\',monospace;font-size:.65rem;color:var(--lb)">
+        Mini: $${m.ptMini}/pt &nbsp;·&nbsp; Full: $${m.ptFull}/pt &nbsp;·&nbsp; Max ${cfg.maxCont} contratos
+      </div>
+    </div>
+    <div class="sec-hdr"><h2 data-i18n="sec.config">${t('sec.config')}</h2></div>
+    ${cfgHtml}
+    <div class="sec-hdr"><h2 data-i18n="sec.perf">${t('sec.perf')}</h2></div>
+    ${kpiHtml}${chartsHtml}
+    <div class="sec-hdr" style="margin-top:1.25rem"><h2 data-i18n="sec.daily">${t('sec.daily')}</h2></div>
+    ${tableHtml}
+  </div>`;
+}
+
+function mkField(labelKey,id,val,type,cls,dec){
+  return`<div class="field"><label data-i18n="${labelKey}">${t(labelKey)}</label>
+    <input type="${type}" id="${id}" value="${val||''}" class="${cls}" step="${dec>0?0.01:1}"></div>`;
+}
+
+function saveInstConfig(id){
+  const s=getState();const cfg=s.instruments[id].config;
+  const flds=['target','maxLoss','maxDay','minDays','maxCont','stop'];
+  flds.forEach(f=>{const el=document.getElementById(`inst_${id}_${f}`);if(el)cfg[f]=parseFloat(el.value)||0});
+  const dateEl=document.getElementById(`inst_${id}_startDate`);
+  if(dateEl&&dateEl.value) cfg.startDate=dateEl.value;
+  s.instruments[id].config=cfg;
+  setState(s);renderPage(currentPage);
+}
+
+function rebuildDays(id){
+  const s=getState();
+  const dateEl=document.getElementById(`inst_${id}_startDate`);
+  if(dateEl&&dateEl.value) s.instruments[id].config.startDate=dateEl.value;
+  s.instruments[id].days=mkDays(s.instruments[id].config.startDate||'');
+  setState(s);renderPage(currentPage);
+}
+
+function updateDay(id,idx,val){
+  const s=getState();
+  s.instruments[id].days[idx].resultado=parseFloat(val)||0;
+  setState(s);
+  // Refresh KPIs only (don't re-render whole page to keep focus)
+  renderPage(currentPage);
+}
+
+/* ═══════════════════════════════════ PAGE: CALCULATOR ══════════════════════ */
+const CALC_DIR={mnq:'LONG',mgc:'LONG',mbt:'LONG'};
+
+function calcBlock(id,s){
+  const m=INST_META[id];const c=s.calc[id]||{};
+  return`<div class="calc-block" style="--cc:${m.color}">
+    <div class="calc-head">
+      <div class="ic-name">${m.emoji} ${m.symbol} / ${m.full}</div>
+      <span style="font-size:.62rem;color:var(--lb);font-family:'DM Mono',monospace;margin-left:auto">Mini $${m.ptMini}/pt · Full $${m.ptFull}/pt</span>
+    </div>
+    <div class="calc-body">
+      <div class="calc-in-grid">
+        <div class="field"><label data-i18n="calc.entry">${t('calc.entry')}</label>
+          <input type="number" id="c_${id}_e" value="${c.entry||''}" step="0.01" oninput="calcCalc('${id}')" placeholder="0.00"></div>
+        <div class="field"><label data-i18n="calc.stop">${t('calc.stop')}</label>
+          <input type="number" id="c_${id}_s" value="${c.stop||''}" step="0.01" oninput="calcCalc('${id}')" placeholder="0.00"></div>
+        <div class="field"><label data-i18n="calc.target">${t('calc.target')}</label>
+          <input type="number" id="c_${id}_t" value="${c.target||''}" step="0.01" oninput="calcCalc('${id}')" placeholder="0.00"></div>
+        <div class="field"><label data-i18n="calc.dir">${t('calc.dir')}</label>
+          <div class="dir-tog">
+            <button class="dir-btn long ${(c.dir||'LONG')==='LONG'?'active':''}" id="c_${id}_dl" onclick="cDir('${id}','LONG')">${t('lbl.long')}</button>
+            <button class="dir-btn short ${(c.dir||'LONG')==='SHORT'?'active':''}" id="c_${id}_ds" onclick="cDir('${id}','SHORT')">${t('lbl.short')}</button>
+          </div></div>
+      </div>
+      <div class="res-grid">
+        <div class="rb"><div class="rl" data-i18n="calc.stopPts">${t('calc.stopPts')}</div><div class="rv rd" id="c_${id}_sp">—</div></div>
+        <div class="rb"><div class="rl" data-i18n="calc.tgtPts">${t('calc.tgtPts')}</div><div class="rv gn" id="c_${id}_tp">—</div></div>
+        <div class="rb"><div class="rl" data-i18n="calc.mini">${t('calc.mini')}</div><div class="rv cy big" id="c_${id}_mn">—</div><div class="rv" style="font-size:.65rem;color:var(--dm)" id="c_${id}_mr"></div></div>
+        <div class="rb"><div class="rl" data-i18n="calc.full">${t('calc.full')}</div><div class="rv cy big" id="c_${id}_fn">—</div><div class="rv" style="font-size:.65rem;color:var(--dm)" id="c_${id}_fr"></div></div>
+        <div class="rb"><div class="rl" data-i18n="calc.riskReal">${t('calc.riskReal')}</div><div class="rv rd" id="c_${id}_rr">—</div></div>
+        <div class="rb"><div class="rl" data-i18n="calc.gain">${t('calc.gain')}</div><div class="rv gn" id="c_${id}_gn">—</div></div>
+        <div class="rb"><div class="rl" data-i18n="calc.rrMini">${t('calc.rrMini')}</div><div class="rv go" id="c_${id}_rm">—</div>
+          <div class="rr-track"><div class="rr-fill" id="c_${id}_rb" style="width:0%"></div></div></div>
+        <div class="rb"><div class="rl" data-i18n="calc.pct">${t('calc.pct')}</div><div class="rv" id="c_${id}_pc">—</div></div>
+      </div>
+      <div class="wp" id="c_${id}_wp"></div>
+    </div></div>`;
+}
+
+function pageCalc(){
+  const s=getState();
+  const riskBox=`<div class="kpi-card" style="--kc:var(--cy);grid-column:span 1;background:rgba(0,196,255,.06);border-color:rgba(0,196,255,.25)">
+    <div class="kpi-label" data-i18n="calc.riskUSD">${t('calc.riskUSD')}</div>
+    <div class="kpi-val cy" id="g_riskDisplay">${$f(getRiskDollar(s.calc))}</div></div>`;
+  const gCfg=`<div class="panel" style="--pc:var(--cy)">
+    <div class="field-grid">
+      <div class="field"><label data-i18n="calc.capital">${t('calc.capital')}</label>
+        <input type="number" id="g_cap" value="${s.calc.capital}" oninput="saveCalcGlobal();calcAllCalc()"></div>
+      <div class="field"><label data-i18n="calc.riskVal">${t('calc.riskVal')}</label>
+        <input type="number" id="g_risk" value="${s.calc.riskVal}" step="0.1" oninput="saveCalcGlobal();calcAllCalc()"></div>
+      <div class="field"><label data-i18n="calc.riskType">${t('calc.riskType')}</label>
+        <select id="g_type" onchange="saveCalcGlobal();calcAllCalc()">
+          <option value="pct" ${s.calc.riskType==='pct'?'selected':''}>${t('calc.typePct')}</option>
+          <option value="usd" ${s.calc.riskType==='usd'?'selected':''}>${t('calc.typeUSD')}</option>
+        </select></div>
+      ${riskBox}
+    </div></div>`;
+  return`<div class="page-anim">
+    <div class="sec-hdr"><h2 data-i18n="sec.calc">${t('sec.calc')}</h2></div>
+    ${gCfg}
+    ${calcBlock('mnq',s)}${calcBlock('mgc',s)}${calcBlock('mbt',s)}
+  </div>`;
+}
+
+function getRiskDollar(calc){
+  const cap=parseFloat(calc.capital)||0,rv=parseFloat(calc.riskVal)||0,ty=calc.riskType;
+  return ty==='pct'?cap*rv/100:rv;
+}
+
+function saveCalcGlobal(){
+  const s=getState();
+  s.calc.capital=parseFloat(document.getElementById('g_cap').value)||0;
+  s.calc.riskVal=parseFloat(document.getElementById('g_risk').value)||0;
+  const tp=document.getElementById('g_type');if(tp)s.calc.riskType=tp.value;
+  setState(s);
+  const rd=document.getElementById('g_riskDisplay');if(rd)rd.textContent=$f(getRiskDollar(s.calc));
+}
+
+function cDir(id,d){
+  const s=getState();s.calc[id]=s.calc[id]||{};s.calc[id].dir=d;setState(s);
+  const dl=document.getElementById(`c_${id}_dl`),ds=document.getElementById(`c_${id}_ds`);
+  if(dl){dl.classList.toggle('active',d==='LONG');dl.textContent=t('lbl.long')}
+  if(ds){ds.classList.toggle('active',d==='SHORT');ds.textContent=t('lbl.short')}
+  calcCalc(id);
+}
+
+function calcCalc(id){
+  const s=getState();const m=INST_META[id];
+  const risk=getRiskDollar(s.calc);const cap=parseFloat(s.calc.capital)||0;
+  const e=parseFloat(document.getElementById(`c_${id}_e`)?.value);
+  const sl=parseFloat(document.getElementById(`c_${id}_s`)?.value);
+  const tg=parseFloat(document.getElementById(`c_${id}_t`)?.value);
+  const dir=(s.calc[id]||{}).dir||'LONG';
+  const wp=document.getElementById(`c_${id}_wp`);
+
+  const clr=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  if(!isFinite(e)||!isFinite(sl)||e===sl){
+    ['sp','tp','mn','fn','rr','gn','rm','pc'].forEach(k=>clr(`c_${id}_${k}`,'—'));
+    clr(`c_${id}_mr`,'');clr(`c_${id}_fr`,'');
+    const rb=document.getElementById(`c_${id}_rb`);if(rb)rb.style.width='0%';
+    if(wp){wp.textContent=t('st.nodata');wp.className='wp warn show'};return;
+  }
+  const sp=Math.abs(e-sl),tp=isFinite(tg)?Math.abs(tg-e):0;
+  const mn=sp>0?Math.floor(risk/(sp*m.ptMini)):0;
+  const fn=sp>0?Math.floor(risk/(sp*m.ptFull)):0;
+  const rmn=mn*sp*m.ptMini,rfn=fn*sp*m.ptFull;
+  const gmn=mn*tp*m.ptMini;
+  const rrV=rmn>0?gmn/rmn:0,pcV=cap>0?rmn/cap:0;
+  const dirMismatch=(dir==='LONG'&&sl>e)||(dir==='SHORT'&&sl<e);
+
+  clr(`c_${id}_sp`,pf(sp));clr(`c_${id}_tp`,isFinite(tg)?pf(tp):'—');
+  clr(`c_${id}_mn`,mn>0?mn:'0');clr(`c_${id}_mr`,mn>0?$f(rmn)+' risco':'');
+  clr(`c_${id}_fn`,fn>0?fn:'0');clr(`c_${id}_fr`,fn>0?$f(rfn)+' risco':'');
+  clr(`c_${id}_rr`,$f(rmn));clr(`c_${id}_gn`,isFinite(tg)&&gmn>0?$f(gmn):'—');
+  clr(`c_${id}_rm`,rrf(rrV));clr(`c_${id}_pc`,pct(pcV));
+  const rb=document.getElementById(`c_${id}_rb`);if(rb)rb.style.width=Math.min(rrV/5,1)*100+'%';
+  const pc=document.getElementById(`c_${id}_pc`);
+  if(pc)pc.className=`rv ${pcV>0.03?'rd':pcV>0.015?'go':'gn'}`;
+  if(wp){
+    if(mn<=0){wp.textContent=t('st.wide');wp.className='wp warn show'}
+    else if(dirMismatch){wp.textContent='⚠ '+t('calc.dir');wp.className='wp warn show'}
+    else if(pcV>0.025){wp.textContent=t('st.behind');wp.className='wp warn show'}
+    else{wp.textContent=t('st.ok');wp.className='wp ok show'}
+  }
+  // save inputs
+  s.calc[id]=s.calc[id]||{};
+  s.calc[id].entry=document.getElementById(`c_${id}_e`)?.value||'';
+  s.calc[id].stop=document.getElementById(`c_${id}_s`)?.value||'';
+  s.calc[id].target=document.getElementById(`c_${id}_t`)?.value||'';
+  setState(s);
+}
+function calcAllCalc(){['mnq','mgc','mbt'].forEach(calcCalc)}
+
+/* ═══════════════════════════════════ PAGE: COMPARATIVE ══════════════════════ */
+function pageComp(){
+  const s=getState();
+  const rows=['mnq','mgc','mbt'].map(id=>{
+    const m=INST_META[id],calc=calcInst(s.instruments[id]);
+    const stCls=calc.status==='ahead'?'ok':calc.status==='danger'?'danger':'warn';
+    return`<tr>
+      <td style="color:${m.color};font-weight:700;text-align:left">${m.emoji} ${m.symbol}/${m.full}</td>
+      <td>${$f(calc.target)}</td>
+      <td style="color:${calc.realAcum>=0?'var(--gn)':'var(--rd)'}">${$f(calc.realAcum)}</td>
+      <td style="color:${calc.plMeta>=0?'var(--gn)':'var(--rd)'}">${$f(calc.plMeta)}</td>
+      <td>${calc.diasOper} / ${calc.diasUteis}</td>
+      <td style="color:${calc.pctPos>=0.5?'var(--gn)':'var(--rd)'}">${pct(calc.pctPos)}</td>
+      <td>${$f(calc.meta5)}</td>
+      <td>${$f(calc.meta10)}</td>
+      <td>${$f(calc.meta20)}</td>
+      <td><span class="pill ${stCls}">${t('st.'+calc.status)}</span></td>
+    </tr>`;
+  }).join('');
+
+  return`<div class="page-anim">
+    <div class="sec-hdr"><h2 data-i18n="sec.comp">${t('sec.comp')}</h2></div>
+    <div class="comp-table-wrap">
+      <table class="comp"><thead><tr>
+        <th data-i18n="comp.inst">${t('comp.inst')}</th>
+        <th data-i18n="comp.target">${t('comp.target')}</th>
+        <th data-i18n="comp.real">${t('comp.real')}</th>
+        <th data-i18n="comp.pl">${t('comp.pl')}</th>
+        <th data-i18n="comp.dias">${t('comp.dias')}</th>
+        <th data-i18n="comp.pct">${t('comp.pct')}</th>
+        <th data-i18n="lbl.meta5">${t('lbl.meta5')}</th>
+        <th data-i18n="lbl.meta10">${t('lbl.meta10')}</th>
+        <th data-i18n="lbl.meta20">${t('lbl.meta20')}</th>
+        <th>Status</th>
+      </tr></thead><tbody>${rows}</tbody></table>
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════ NAVIGATION ═════════════════════════════ */
+let currentPage='dashboard';
+const PAGE_TITLES={dashboard:'dash.title',mnq:'nav.instruments',mgc:'nav.instruments',mbt:'nav.instruments',calc:'sec.calc',comp:'sec.comp'};
+
+function go(page){
+  currentPage=page;
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.classList.toggle('active',el.getAttribute('data-page')===page);
+  });
+  const m=INST_META[page];
+  document.getElementById('topTitle').textContent=
+    m?`${m.emoji} ${m.symbol} / ${m.full}`:t(PAGE_TITLES[page]||'nav.dashboard');
+  document.getElementById('topSub').textContent=
+    m?m.name:t('dash.sub');
+  document.getElementById('resetBtn').style.display=
+    ['mnq','mgc','mbt'].includes(page)?'':'none';
+  renderPage(page);
+  document.getElementById('nav').classList.remove('open');
+}
+
+function renderPage(page){
+  const el=document.getElementById('content');
+  if(!el)return;
+  if(page==='dashboard') el.innerHTML=pageDashboard();
+  else if(['mnq','mgc','mbt'].includes(page)){el.innerHTML=pageInst(page);}
+  else if(page==='calc'){el.innerHTML=pageCalc();calcAllCalc();}
+  else if(page==='comp') el.innerHTML=pageComp();
+  // Re-apply i18n to newly rendered elements
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.getAttribute('data-i18n')));
+  // Re-apply ft.note in footer
+  document.querySelector('footer span').textContent=t('ft.note');
+}
+
+function confirmReset(){
+  if(confirm(lang==='PT'?'Apagar todos os resultados deste instrumento?':
+    lang==='EN'?'Clear all results for this instrument?':
+    lang==='ES'?'¿Borrar todos los resultados de este instrumento?':
+    lang==='HE'?'למחוק את כל תוצאות המכשיר?':
+    'Очистить все результаты по инструменту?')){
+    const s=getState();
+    s.instruments[currentPage].days=mkDays(s.instruments[currentPage].config.startDate||'');
+    setState(s);renderPage(currentPage);
+  }
+}
+
+/* ═══════════════════════════════════ INIT ═══════════════════════════════════ */
+(function init(){
+  let l='PT';try{l=localStorage.getItem('bg_lang')||'PT'}catch(e){}
+  if(!D[l])l='PT';
+  lang=l;
+  document.documentElement.setAttribute('lang',l==='HE'?'he':l.toLowerCase());
+  document.documentElement.setAttribute('dir',l==='HE'?'rtl':'ltr');
+  document.querySelectorAll('.lb-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang')===l));
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.getAttribute('data-i18n')));
+  go('dashboard');
+})();
+</script>
+</body>
+</html>
